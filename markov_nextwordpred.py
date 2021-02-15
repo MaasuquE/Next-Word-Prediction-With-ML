@@ -47,3 +47,45 @@ def trainMarkovModel():
         transitions[word_pair] = get_next_probability(next_word_list)
     
 
+def next_word(tpl):
+    #print(transitions)
+    if(type(tpl) == str):   #it is first word of string.. return from second word
+        d = second_possible_words.get(tpl)
+        if (d is not None):
+            return list(d.keys())
+    if(type(tpl) == tuple): #incoming words are combination of two words.. find next word now based on transitions
+        d = transitions.get(tpl)
+        if(d == None):
+            return []
+        return list(d.keys())
+    return None #wrong input.. return nothing
+    
+
+trainMarkovModel()  #generate first, second words list and transitions
+
+########## demo code below ################
+print("Usage: start typing.. program will suggest words. Press tab to chose the first suggestion or keep typing\n")
+
+import msvcrt   #use of mscvrt to get character from user on real time without pressing enter
+c=''
+sent=''
+last_suggestion=[]
+while(c != b'\r'):  #stop when user preses enter
+    if(c != b'\t'): #if previous character was tab, then after autocompletion dont wait for user inpput.. just show suggestions
+        c=msvcrt.getch()
+    else:
+        c = b' '
+    if(c != b'\t'): #dont print tab etc
+        print(str(c.decode('utf-8')), end='', flush=True)
+    sent = sent + str(c.decode('utf-8'))  #create word on space
+    if(c == b' '):
+        tkns = sent.split()
+        if(len(tkns) < 2):  #only first space encountered yet
+            last_suggestion = next_word(tkns[0].lower())
+            print(last_suggestion, end='  ', flush=True)
+        else: #send a tuple
+            last_suggestion = next_word((tkns[-2].lower(), tkns[-1].lower()))
+            print(last_suggestion, end='  ', flush=True)
+    if (c == b'\t' and len(last_suggestion) > 0):   #print last suggestion on tab
+        print(last_suggestion[0], end='  ', flush=True)
+        sent = sent + " " + last_suggestion[0]
